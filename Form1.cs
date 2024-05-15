@@ -1,6 +1,7 @@
 using ExtendedAutoStart.Data;
 using ExtendedAutoStart.Models;
 using ExtendedAutoStart.Models.Enums;
+using Microsoft.Data.Sqlite;
 using Microsoft.Win32;
 using System.Diagnostics;
 
@@ -16,16 +17,15 @@ namespace ExtendedAutoStart
             InitializeListViews();
             InitializeNotifyIcon();
 
-            this.KeyPreview = true; // Ensure the form receives key events before child controls
+            this.KeyPreview = true;
             this.KeyDown += new KeyEventHandler(Form1_KeyDown);
         }
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.F5)
             {
-                // Aktion ausführen, wenn F5 gedrückt wird
                 PerformF5Action();
-                e.Handled = true; // Event als verarbeitet markieren
+                e.Handled = true;
             }
         }
 
@@ -153,24 +153,44 @@ namespace ExtendedAutoStart
             return programs;
         }
 
+        private RegistryKey GetRegistryKey(string path, bool writable = false)
+        {
+            if (path.StartsWith(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run"))
+            {
+                return Registry.LocalMachine.OpenSubKey(path, writable);
+            }
+            else if (path.StartsWith(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run"))
+            {
+                return Registry.CurrentUser.OpenSubKey(path.Replace("HKEY_CURRENT_USER\\", ""), writable);
+            }
+            return null;
+        }
+
         private IEnumerable<ComputerProgram> GetProgramsFromRegistry()
         {
-            string runKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
-            using (RegistryKey rk = Registry.LocalMachine.OpenSubKey(runKey))
+            string[] runKeys = {
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
+                @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run"
+            };
+
+            foreach (var runKey in runKeys)
             {
-                if (rk == null) yield break;
-                foreach (string skName in rk.GetValueNames())
+                using (RegistryKey rk = GetRegistryKey(runKey))
                 {
-                    string programName = skName;
-                    string? programPath = rk.GetValue(skName)?.ToString();
-                    if (programPath == null) continue;
-                    yield return new ComputerProgram
+                    if (rk == null) continue;
+                    foreach (string skName in rk.GetValueNames())
                     {
-                        Name = programName,
-                        Path = programPath,
-                        IsInAutoStart = true,
-                        StartUpType = StartUpType.Registry
-                    };
+                        string programName = skName;
+                        string programPath = rk.GetValue(skName)?.ToString();
+                        if (programPath == null) continue;
+                        yield return new ComputerProgram
+                        {
+                            Name = programName,
+                            Path = programPath,
+                            IsInAutoStart = true,
+                            StartUpType = StartUpType.Registry
+                        };
+                    }
                 }
             }
         }
@@ -264,10 +284,17 @@ namespace ExtendedAutoStart
 
         private void RemoveFromRegistry(string programName)
         {
-            string runKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
-            using (RegistryKey rk = Registry.LocalMachine.OpenSubKey(runKey, true))
+            string[] runKeys = {
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
+                @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run"
+            };
+
+            foreach (var runKey in runKeys)
             {
-                rk?.DeleteValue(programName);
+                using (RegistryKey rk = GetRegistryKey(runKey, writable: true))
+                {
+                    rk?.DeleteValue(programName, throwOnMissingValue: false);
+                }
             }
         }
 
@@ -477,7 +504,7 @@ namespace ExtendedAutoStart
         {
             using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
             {
-                string value = key.GetValue("ProfileNavisionIntegration") as string;
+                string value = key.GetValue("ExtendedAutoStart") as string;
                 return value != null && value.Equals(exePath, StringComparison.OrdinalIgnoreCase);
             }
         }
@@ -486,7 +513,7 @@ namespace ExtendedAutoStart
         {
             using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
             {
-                key.SetValue("ProfileNavisionIntegration", exePath);
+                key.SetValue("ExtendedAutoStart", exePath);
             }
         }
 
@@ -586,6 +613,77 @@ namespace ExtendedAutoStart
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        private void btn_import_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "SQLite Database|*.db|All Files|*.*";
+                openFileDialog.Title = "Select a SQLite Database";
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string selectedFilePath = openFileDialog.FileName;
+                    ImportDataFromSQLite(selectedFilePath);
+                }
+            }
+        }
+
+        private void ImportDataFromSQLite(string filePath)
+        {
+            try
+            {
+                var programsToImport = GetProgramsFromExternalDatabase(filePath);
+
+                using (var context = new MainDbContext())
+                {
+                    foreach (var program in programsToImport)
+                    {
+                        if (!context.ProgramsInExtendedStartup.Any(p => p.Name == program.Name))
+                        {
+                            context.ProgramsInExtendedStartup.Add(program);
+                        }
+                    }
+                    context.SaveChanges();
+                }
+
+                MessageBox.Show("Data imported successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ReloadListViewItems();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error during import: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private List<ExtendedStartupProgram> GetProgramsFromExternalDatabase(string filePath)
+        {
+            var programs = new List<ExtendedStartupProgram>();
+
+            var connectionString = $"Data Source={filePath}";
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = "SELECT Name, Path, Activated FROM ProgramsInExtendedStartup";
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var program = new ExtendedStartupProgram
+                        {
+                            Name = reader.IsDBNull(0) ? string.Empty : reader.GetString(0),
+                            Path = reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
+                            Activated = reader.IsDBNull(2) ? false : reader.GetBoolean(2)
+                        };
+                        programs.Add(program);
+                    }
+                }
+            }
+
+            return programs;
         }
     }
 }

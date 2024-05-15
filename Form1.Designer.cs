@@ -49,6 +49,7 @@
             btn_transfer = new Button();
             toolTip1 = new ToolTip(components);
             notifyIcon = new NotifyIcon(components);
+            btn_import = new Button();
             cMS_lVNormalStartup.SuspendLayout();
             cMS_lVExtendedStartup.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
@@ -90,7 +91,7 @@
             // 
             cMS_lVNormalStartup.Items.AddRange(new ToolStripItem[] { removeFromStartupToolStripMenuItem, openLocationToolStripMenuItem, refreshToolStripMenuItem });
             cMS_lVNormalStartup.Name = "cMS_lVNormalStartup";
-            cMS_lVNormalStartup.Size = new Size(188, 92);
+            cMS_lVNormalStartup.Size = new Size(188, 70);
             // 
             // removeFromStartupToolStripMenuItem
             // 
@@ -193,11 +194,23 @@
             notifyIcon.Text = "ExtendedAutoStart";
             notifyIcon.Visible = true;
             // 
+            // btn_import
+            // 
+            btn_import.Location = new Point(353, 404);
+            btn_import.Name = "btn_import";
+            btn_import.Size = new Size(97, 23);
+            btn_import.TabIndex = 9;
+            btn_import.Text = "Import DB";
+            toolTip1.SetToolTip(btn_import, "Transfer all programs from normal startup to extended startup");
+            btn_import.UseVisualStyleBackColor = true;
+            btn_import.Click += btn_import_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(btn_import);
             Controls.Add(btn_transfer);
             Controls.Add(lV_programsInExtendedStartup);
             Controls.Add(lV_programsInNormalStartup);
@@ -235,5 +248,6 @@
         private NotifyIcon notifyIcon;
         private ToolStripMenuItem refreshToolStripMenuItem;
         private ToolStripMenuItem refreshToolStripMenuItem1;
+        private Button btn_import;
     }
 }
