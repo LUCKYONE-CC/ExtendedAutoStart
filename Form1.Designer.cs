@@ -29,9 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            notifyIcon = new NotifyIcon(components);
-            cMS_NI = new ContextMenuStrip(components);
-            openPanelToolStripMenuItem = new ToolStripMenuItem();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             lab_pIES = new Label();
             label1 = new Label();
             lV_programsInNormalStartup = new ListView();
@@ -48,28 +46,11 @@
             toolStripMenuItem2 = new ToolStripMenuItem();
             btn_transfer = new Button();
             toolTip1 = new ToolTip(components);
-            cMS_NI.SuspendLayout();
+            notifyIcon = new NotifyIcon(components);
             cMS_lVNormalStartup.SuspendLayout();
             cMS_lVExtendedStartup.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
             SuspendLayout();
-            // 
-            // notifyIcon
-            // 
-            notifyIcon.Text = "ExtendedStartupNotifyIcon";
-            notifyIcon.Visible = true;
-            // 
-            // cMS_NI
-            // 
-            cMS_NI.Items.AddRange(new ToolStripItem[] { openPanelToolStripMenuItem });
-            cMS_NI.Name = "cMS_NI";
-            cMS_NI.Size = new Size(136, 26);
-            // 
-            // openPanelToolStripMenuItem
-            // 
-            openPanelToolStripMenuItem.Name = "openPanelToolStripMenuItem";
-            openPanelToolStripMenuItem.Size = new Size(135, 22);
-            openPanelToolStripMenuItem.Text = "Open Panel";
             // 
             // lab_pIES
             // 
@@ -190,6 +171,12 @@
             btn_transfer.UseVisualStyleBackColor = true;
             btn_transfer.Click += btn_transfer_Click;
             // 
+            // notifyIcon
+            // 
+            notifyIcon.Icon = (Icon)resources.GetObject("notifyIcon.Icon");
+            notifyIcon.Text = "ExtendedAutoStart";
+            notifyIcon.Visible = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -200,10 +187,11 @@
             Controls.Add(lV_programsInNormalStartup);
             Controls.Add(label1);
             Controls.Add(lab_pIES);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form1";
             Text = "ExtendedStartup";
+            FormClosing += Form1_FormClosing;
             Load += Form1_Load;
-            cMS_NI.ResumeLayout(false);
             cMS_lVNormalStartup.ResumeLayout(false);
             cMS_lVExtendedStartup.ResumeLayout(false);
             contextMenuStrip1.ResumeLayout(false);
@@ -212,10 +200,6 @@
         }
 
         #endregion
-
-        private NotifyIcon notifyIcon;
-        private ContextMenuStrip cMS_NI;
-        private ToolStripMenuItem openPanelToolStripMenuItem;
         private Label lab_pIES;
         private Label label1;
         private ListView lV_programsInNormalStartup;
@@ -232,5 +216,6 @@
         private ToolStripMenuItem toolStripMenuItem2;
         private Button btn_transfer;
         private ToolTip toolTip1;
+        private NotifyIcon notifyIcon;
     }
 }

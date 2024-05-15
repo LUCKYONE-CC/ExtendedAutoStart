@@ -14,6 +14,7 @@ namespace ExtendedAutoStart
         {
             InitializeComponent();
             InitializeListViews();
+            InitializeNotifyIcon();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -26,7 +27,7 @@ namespace ExtendedAutoStart
             string exePath = GetExecutablePath();
             if (!IsInStartupRegistry(exePath))
             {
-                AddToStartupRegistry(exePath);
+                //AddToStartupRegistry(exePath);
             }
 
             DatabaseManager.Instance.InitializeDatabaseIfNeeded();
@@ -48,10 +49,32 @@ namespace ExtendedAutoStart
 
         private void InitializeListViews()
         {
-            InitializeListView(lV_programsInNormalStartup, new[] { "Name", "StartupType" });
-            InitializeListView(lV_programsInExtendedStartup, new[] { "Name", "Activated" });
+            InitializeListView(lV_programsInNormalStartup, ["Name", "StartupType"]);
+            InitializeListView(lV_programsInExtendedStartup, ["Name", "Activated"]);
         }
+        private void StartExtendedAutoStartPrograms()
+        {
+            try
+            {
+                using (var context = new MainDbContext())
+                {
+                    var programs = context.ProgramsInExtendedStartup.Where(p => p.Activated).ToList();
+                    foreach (var program in programs)
+                    {
+                        if (!File.Exists(program.Path))
+                        {
+                            continue;
+                        }
 
+                        Process.Start(program.Path);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
         private void InitializeListView(ListView listView, string[] columns)
         {
             listView.View = View.Details;
@@ -444,11 +467,69 @@ namespace ExtendedAutoStart
             }
             return mainModule.FileName;
         }
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+
+            this.Visible = false;
+            this.Hide();
+        }
+
+        private void InitializeNotifyIcon()
+        {
+            notifyIcon.DoubleClick += NotifyIcon_DoubleClick;
+
+            var contextMenu = new ContextMenuStrip();
+            var openMenuItem = new ToolStripMenuItem("Open", null, OpenMenuItem_Click);
+            var exitMenuItem = new ToolStripMenuItem("Exit", null, ExitMenuItem_Click);
+            contextMenu.Items.AddRange(new[] { openMenuItem, exitMenuItem });
+            notifyIcon.ContextMenuStrip = contextMenu;
+        }
+
+        private void NotifyIcon_DoubleClick(object sender, EventArgs e)
+        {
+            ShowForm();
+        }
+
+        private void OpenMenuItem_Click(object sender, EventArgs e)
+        {
+            ShowForm();
+        }
+
+        private void ExitMenuItem_Click(object sender, EventArgs e)
+        {
+            notifyIcon.Visible = false;
+            singleInstanceMutex?.Close();
+            Application.Exit();
+        }
+
+        private void ShowForm()
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            e.Cancel = true;
+            this.Hide(); 
+            notifyIcon.ShowBalloonTip(1000, "ExtendedAutoStart", "The application is still running in the background.", ToolTipIcon.Info);
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            notifyIcon.Dispose();
+        }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            singleInstanceMutex?.Close();
-            base.OnFormClosing(e);
+            Form1_FormClosing(this, e);
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            Form1_FormClosed(this, e);
+            base.OnFormClosed(e);
         }
     }
 }

@@ -7,7 +7,16 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
 	<StartWorkingDirectory>$(MSBuildProjectDirectory)</StartWorkingDirectory>
+	<PackageIcon>5537993.png</PackageIcon>
+	<RepositoryUrl>https://github.com/LUCKYONE-CC/ExtendedAutoStart</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\Users\t.schmitz\Downloads\5537993.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.5" />
