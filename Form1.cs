@@ -4,6 +4,7 @@ using ExtendedAutoStart.Models.Enums;
 using Microsoft.Data.Sqlite;
 using Microsoft.Win32;
 using System.Diagnostics;
+using System.Management;
 
 namespace ExtendedAutoStart
 {
@@ -197,17 +198,27 @@ namespace ExtendedAutoStart
 
         private IEnumerable<ComputerProgram> GetProgramsFromStartupFolder()
         {
-            string startupFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-            foreach (string startupFile in Directory.GetFiles(startupFolderPath))
+            string adminStartupFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+            string userStartupFolderPath = GetUserStartupFolder();
+
+            var startupFolders = new List<string> { adminStartupFolderPath, userStartupFolderPath };
+
+            foreach (var startupFolder in startupFolders)
             {
-                string programName = Path.GetFileNameWithoutExtension(startupFile);
-                yield return new ComputerProgram
+                if (Directory.Exists(startupFolder))
                 {
-                    Name = programName,
-                    Path = startupFile,
-                    IsInAutoStart = true,
-                    StartUpType = StartUpType.StartUpFolder
-                };
+                    foreach (string startupFile in Directory.GetFiles(startupFolder))
+                    {
+                        string programName = Path.GetFileNameWithoutExtension(startupFile);
+                        yield return new ComputerProgram
+                        {
+                            Name = programName,
+                            Path = startupFile,
+                            IsInAutoStart = true,
+                            StartUpType = StartUpType.StartUpFolder
+                        };
+                    }
+                }
             }
         }
 
@@ -300,8 +311,8 @@ namespace ExtendedAutoStart
 
         private void RemoveFromStartupFolder(ComputerProgram program)
         {
-            string startupFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-            string startupFilePathWithLnk = Path.Combine(startupFolderPath, program.Name + ".lnk");
+            string userStartupFolderPath = GetUserStartupFolder();
+            string startupFilePathWithLnk = Path.Combine(userStartupFolderPath, program.Name + ".lnk");
 
             if (File.Exists(startupFilePathWithLnk))
             {
@@ -312,6 +323,38 @@ namespace ExtendedAutoStart
             {
                 File.Delete(program.Path);
             }
+        }
+
+        private static string GetUserStartupFolder()
+        {
+            string userName = GetLoggedInUserName();
+            string userProfilePath = $@"C:\Users\{userName}";
+
+            return Path.Combine(userProfilePath, @"AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup");
+        }
+
+        private static string GetLoggedInUserName()
+        {
+            string query = "SELECT UserName FROM Win32_ComputerSystem WHERE UserName IS NOT NULL";
+            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
+            using (ManagementObjectCollection results = searcher.Get())
+            {
+                foreach (ManagementObject result in results)
+                {
+                    string userName = result["UserName"]?.ToString();
+                    if (!string.IsNullOrEmpty(userName))
+                    {
+                        string[] parts = userName.Split('\\');
+                        if (parts.Length > 1)
+                        {
+                            return parts[1];
+                        }
+                        return userName;
+                    }
+                }
+            }
+
+            throw new InvalidOperationException("Kein angemeldeter Benutzer gefunden.");
         }
 
         private void openLocationToolStripMenuItem_Click(object sender, EventArgs e)
@@ -466,8 +509,15 @@ namespace ExtendedAutoStart
                 using (var context = new MainDbContext())
                 {
                     var programs = GetAllProgramsInStartUp().FindAll(p => p.IsInAutoStart);
+                    var programsFromDb = context.ProgramsInExtendedStartup.ToList();
                     foreach (var program in programs)
                     {
+                        if (programsFromDb.Any(p => p.Name == program.Name))
+                        {
+                            var programFromDb = programsFromDb.First(p => p.Name == program.Name);
+                            context.ProgramsInExtendedStartup.Remove(programFromDb);
+                        }
+
                         if (program.Name == "ExtendedAutoStart") continue;
                         context.ProgramsInExtendedStartup.Add(new ExtendedStartupProgram
                         {
@@ -505,6 +555,13 @@ namespace ExtendedAutoStart
             using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
             {
                 string value = key.GetValue("ExtendedAutoStart") as string;
+
+                //Passe den Pfad an, falls er nicht mit dem aktuellen Pfad übereinstimmt
+                if (value != null && !value.Equals(exePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    key.SetValue("ExtendedAutoStart", exePath);
+                }
+
                 return value != null && value.Equals(exePath, StringComparison.OrdinalIgnoreCase);
             }
         }
@@ -559,7 +616,10 @@ namespace ExtendedAutoStart
         {
             notifyIcon.Visible = false;
             singleInstanceMutex?.Close();
-            Application.Exit();
+            notifyIcon.Dispose();
+
+            Process currentProcess = Process.GetCurrentProcess();
+            currentProcess.Kill();
         }
 
         private void ShowForm()

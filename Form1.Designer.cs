@@ -48,8 +48,8 @@
             toolStripMenuItem2 = new ToolStripMenuItem();
             btn_transfer = new Button();
             toolTip1 = new ToolTip(components);
-            notifyIcon = new NotifyIcon(components);
             btn_import = new Button();
+            notifyIcon = new NotifyIcon(components);
             cMS_lVNormalStartup.SuspendLayout();
             cMS_lVExtendedStartup.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
@@ -179,6 +179,7 @@
             // 
             // btn_transfer
             // 
+            btn_transfer.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             btn_transfer.Location = new Point(353, 12);
             btn_transfer.Name = "btn_transfer";
             btn_transfer.Size = new Size(97, 23);
@@ -188,14 +189,9 @@
             btn_transfer.UseVisualStyleBackColor = true;
             btn_transfer.Click += btn_transfer_Click;
             // 
-            // notifyIcon
-            // 
-            notifyIcon.Icon = (Icon)resources.GetObject("notifyIcon.Icon");
-            notifyIcon.Text = "ExtendedAutoStart";
-            notifyIcon.Visible = true;
-            // 
             // btn_import
             // 
+            btn_import.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             btn_import.Location = new Point(353, 404);
             btn_import.Name = "btn_import";
             btn_import.Size = new Size(97, 23);
@@ -204,6 +200,12 @@
             toolTip1.SetToolTip(btn_import, "Transfer all programs from normal startup to extended startup");
             btn_import.UseVisualStyleBackColor = true;
             btn_import.Click += btn_import_Click;
+            // 
+            // notifyIcon
+            // 
+            notifyIcon.Icon = (Icon)resources.GetObject("notifyIcon.Icon");
+            notifyIcon.Text = "ExtendedAutoStart";
+            notifyIcon.Visible = true;
             // 
             // Form1
             // 
@@ -217,7 +219,10 @@
             Controls.Add(label1);
             Controls.Add(lab_pIES);
             Icon = (Icon)resources.GetObject("$this.Icon");
+            MaximumSize = new Size(816, 489);
+            MinimumSize = new Size(816, 489);
             Name = "Form1";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "ExtendedStartup";
             FormClosing += Form1_FormClosing;
             Load += Form1_Load;
