@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ExtendedAutoStart.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExtendedAutoStart.Data
 {
