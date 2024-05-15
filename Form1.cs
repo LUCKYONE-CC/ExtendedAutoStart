@@ -1,3 +1,4 @@
+using ExtendedAutoStart.Data;
 using ExtendedAutoStart.Models;
 using ExtendedAutoStart.Models.Enums;
 using Microsoft.Win32;
@@ -10,12 +11,24 @@ namespace ExtendedAutoStart
         public Form1()
         {
             InitializeComponent();
-            InitializeListView();
+            InitializeListViews();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             DatabaseManager.Instance.InitializeDatabaseIfNeeded();
+
+            using(MainDbContext context = new MainDbContext())
+            {
+                var programsInExtendedStartup = context.ProgramsInExtendedStartup.ToList();
+
+                foreach (var program in programsInExtendedStartup)
+                {
+                    ListViewItem item = new ListViewItem(program.Name);
+                    item.SubItems.Add(program.Activated.ToString());
+                    lV_programsInExtendedStartup.Items.Add(item);
+                }
+            }
 
             var programs = GetAllProgramsInStartUp();
 
@@ -36,11 +49,15 @@ namespace ExtendedAutoStart
             lV_programsInNormalStartup.Columns[1].Width = 100; // Set the width of the StartupType column
         }
 
-        private void InitializeListView()
+        private void InitializeListViews()
         {
             lV_programsInNormalStartup.View = View.Details;
             lV_programsInNormalStartup.Columns.Add("Name", -2, HorizontalAlignment.Left);
             lV_programsInNormalStartup.Columns.Add("StartupType", -2, HorizontalAlignment.Left);
+
+            lV_programsInExtendedStartup.View = View.Details;
+            lV_programsInExtendedStartup.Columns.Add("Name", -2, HorizontalAlignment.Left);
+            lV_programsInExtendedStartup.Columns.Add("Activated", -2, HorizontalAlignment.Left);
         }
 
         private List<ComputerProgram> GetAllProgramsInStartUp()

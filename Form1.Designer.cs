@@ -33,12 +33,12 @@
             cMS_NI = new ContextMenuStrip(components);
             openPanelToolStripMenuItem = new ToolStripMenuItem();
             lab_pIES = new Label();
-            lB_programsInExtendedStartup = new ListBox();
             label1 = new Label();
             lV_programsInNormalStartup = new ListView();
             cMS_lVNormalStartup = new ContextMenuStrip(components);
             removeFromStartupToolStripMenuItem = new ToolStripMenuItem();
             openLocationToolStripMenuItem = new ToolStripMenuItem();
+            lV_programsInExtendedStartup = new ListView();
             cMS_NI.SuspendLayout();
             cMS_lVNormalStartup.SuspendLayout();
             SuspendLayout();
@@ -69,16 +69,6 @@
             lab_pIES.Size = new Size(216, 21);
             lab_pIES.TabIndex = 2;
             lab_pIES.Text = "Programs in Extended Startup";
-            // 
-            // lB_programsInExtendedStartup
-            // 
-            lB_programsInExtendedStartup.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            lB_programsInExtendedStartup.FormattingEnabled = true;
-            lB_programsInExtendedStartup.ItemHeight = 15;
-            lB_programsInExtendedStartup.Location = new Point(12, 48);
-            lB_programsInExtendedStartup.Name = "lB_programsInExtendedStartup";
-            lB_programsInExtendedStartup.Size = new Size(269, 379);
-            lB_programsInExtendedStartup.TabIndex = 3;
             // 
             // label1
             // 
@@ -122,14 +112,25 @@
             openLocationToolStripMenuItem.Text = "Open location";
             openLocationToolStripMenuItem.Click += openLocationToolStripMenuItem_Click;
             // 
+            // lV_programsInExtendedStartup
+            // 
+            lV_programsInExtendedStartup.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            lV_programsInExtendedStartup.ContextMenuStrip = cMS_lVNormalStartup;
+            lV_programsInExtendedStartup.FullRowSelect = true;
+            lV_programsInExtendedStartup.Location = new Point(12, 48);
+            lV_programsInExtendedStartup.Name = "lV_programsInExtendedStartup";
+            lV_programsInExtendedStartup.Size = new Size(269, 379);
+            lV_programsInExtendedStartup.TabIndex = 7;
+            lV_programsInExtendedStartup.UseCompatibleStateImageBehavior = false;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(lV_programsInExtendedStartup);
             Controls.Add(lV_programsInNormalStartup);
             Controls.Add(label1);
-            Controls.Add(lB_programsInExtendedStartup);
             Controls.Add(lab_pIES);
             Name = "Form1";
             Text = "ExtendedStartup";
@@ -146,11 +147,11 @@
         private ContextMenuStrip cMS_NI;
         private ToolStripMenuItem openPanelToolStripMenuItem;
         private Label lab_pIES;
-        private ListBox lB_programsInExtendedStartup;
         private Label label1;
         private ListView lV_programsInNormalStartup;
         private ContextMenuStrip cMS_lVNormalStartup;
         private ToolStripMenuItem removeFromStartupToolStripMenuItem;
         private ToolStripMenuItem openLocationToolStripMenuItem;
+        private ListView lV_programsInExtendedStartup;
     }
 }

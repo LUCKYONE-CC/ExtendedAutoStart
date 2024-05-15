@@ -5,7 +5,7 @@ namespace ExtendedAutoStart.Data
 {
     public class MainDbContext : DbContext
     {
-        public DbSet<ComputerProgram> ProgramsInExtendedStartup { get; set; }
+        public DbSet<ExtendedStartupProgram> ProgramsInExtendedStartup { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
