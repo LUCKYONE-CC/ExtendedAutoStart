@@ -2,6 +2,7 @@
 {
     public enum StartUpType
     {
+        Unknown,
         Registry,
         StartUpFolder
     }

@@ -1,4 +1,5 @@
 using ExtendedAutoStart.Models;
+using ExtendedAutoStart.Models.Enums;
 using Microsoft.Win32;
 using System.Diagnostics;
 
@@ -14,6 +15,8 @@ namespace ExtendedAutoStart
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            DatabaseManager.Instance.InitializeDatabaseIfNeeded();
+
             var programs = GetAllProgramsInStartUp();
 
             var programsInAutoStart = programs.FindAll(p => p.IsInAutoStart);
