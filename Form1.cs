@@ -27,7 +27,15 @@ namespace ExtendedAutoStart
             string exePath = GetExecutablePath();
             if (!IsInStartupRegistry(exePath))
             {
+                ShowForm();
                 //AddToStartupRegistry(exePath);
+            }
+            else
+            {
+                if(GetSystemUptime().TotalMinutes > 2)
+                {
+                    Task.Run(StartExtendedAutoStartPrograms);
+                }
             }
 
             DatabaseManager.Instance.InitializeDatabaseIfNeeded();
@@ -46,19 +54,24 @@ namespace ExtendedAutoStart
             }
             return true;
         }
+        private TimeSpan GetSystemUptime()
+        {
+            return TimeSpan.FromMilliseconds(Environment.TickCount64);
+        }
 
         private void InitializeListViews()
         {
             InitializeListView(lV_programsInNormalStartup, ["Name", "StartupType"]);
             InitializeListView(lV_programsInExtendedStartup, ["Name", "Activated"]);
         }
-        private void StartExtendedAutoStartPrograms()
+        private async void StartExtendedAutoStartPrograms()
         {
             try
             {
                 using (var context = new MainDbContext())
                 {
                     var programs = context.ProgramsInExtendedStartup.Where(p => p.Activated).ToList();
+
                     foreach (var program in programs)
                     {
                         if (!File.Exists(program.Path))
@@ -66,7 +79,9 @@ namespace ExtendedAutoStart
                             continue;
                         }
 
-                        Process.Start(program.Path);
+                        await Task.Run(() => Process.Start(program.Path));
+
+                        await Task.Delay(1000);
                     }
                 }
             }

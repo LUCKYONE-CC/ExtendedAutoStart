@@ -9,6 +9,7 @@
 	<StartWorkingDirectory>$(MSBuildProjectDirectory)</StartWorkingDirectory>
 	<PackageIcon>5537993.png</PackageIcon>
 	<RepositoryUrl>https://github.com/LUCKYONE-CC/ExtendedAutoStart</RepositoryUrl>
+	<ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
