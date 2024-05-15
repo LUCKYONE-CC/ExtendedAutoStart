@@ -15,6 +15,23 @@ namespace ExtendedAutoStart
             InitializeComponent();
             InitializeListViews();
             InitializeNotifyIcon();
+
+            this.KeyPreview = true; // Ensure the form receives key events before child controls
+            this.KeyDown += new KeyEventHandler(Form1_KeyDown);
+        }
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F5)
+            {
+                // Aktion ausführen, wenn F5 gedrückt wird
+                PerformF5Action();
+                e.Handled = true; // Event als verarbeitet markieren
+            }
+        }
+
+        private void PerformF5Action()
+        {
+            ReloadListViewItems();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -28,11 +45,11 @@ namespace ExtendedAutoStart
             if (!IsInStartupRegistry(exePath))
             {
                 ShowForm();
-                //AddToStartupRegistry(exePath);
+                AddToStartupRegistry(exePath);
             }
             else
             {
-                if(GetSystemUptime().TotalMinutes > 2)
+                if (GetSystemUptime().TotalMinutes > 2)
                 {
                     Task.Run(StartExtendedAutoStartPrograms);
                 }
@@ -527,7 +544,7 @@ namespace ExtendedAutoStart
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             e.Cancel = true;
-            this.Hide(); 
+            this.Hide();
             notifyIcon.ShowBalloonTip(1000, "ExtendedAutoStart", "The application is still running in the background.", ToolTipIcon.Info);
         }
 
@@ -545,6 +562,30 @@ namespace ExtendedAutoStart
         {
             Form1_FormClosed(this, e);
             base.OnFormClosed(e);
+        }
+
+        private void refreshToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ReloadListViewItems();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void refreshToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ReloadListViewItems();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
     }
 }

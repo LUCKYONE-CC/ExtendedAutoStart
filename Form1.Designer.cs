@@ -36,11 +36,13 @@
             cMS_lVNormalStartup = new ContextMenuStrip(components);
             removeFromStartupToolStripMenuItem = new ToolStripMenuItem();
             openLocationToolStripMenuItem = new ToolStripMenuItem();
+            refreshToolStripMenuItem = new ToolStripMenuItem();
             lV_programsInExtendedStartup = new ListView();
             cMS_lVExtendedStartup = new ContextMenuStrip(components);
             addNewProgramToolStripMenuItem = new ToolStripMenuItem();
             removeToolStripMenuItem = new ToolStripMenuItem();
             activateDeactivateToolStripMenuItem = new ToolStripMenuItem();
+            refreshToolStripMenuItem1 = new ToolStripMenuItem();
             contextMenuStrip1 = new ContextMenuStrip(components);
             toolStripMenuItem1 = new ToolStripMenuItem();
             toolStripMenuItem2 = new ToolStripMenuItem();
@@ -86,9 +88,9 @@
             // 
             // cMS_lVNormalStartup
             // 
-            cMS_lVNormalStartup.Items.AddRange(new ToolStripItem[] { removeFromStartupToolStripMenuItem, openLocationToolStripMenuItem });
+            cMS_lVNormalStartup.Items.AddRange(new ToolStripItem[] { removeFromStartupToolStripMenuItem, openLocationToolStripMenuItem, refreshToolStripMenuItem });
             cMS_lVNormalStartup.Name = "cMS_lVNormalStartup";
-            cMS_lVNormalStartup.Size = new Size(188, 48);
+            cMS_lVNormalStartup.Size = new Size(188, 92);
             // 
             // removeFromStartupToolStripMenuItem
             // 
@@ -104,6 +106,13 @@
             openLocationToolStripMenuItem.Text = "Open location";
             openLocationToolStripMenuItem.Click += openLocationToolStripMenuItem_Click;
             // 
+            // refreshToolStripMenuItem
+            // 
+            refreshToolStripMenuItem.Name = "refreshToolStripMenuItem";
+            refreshToolStripMenuItem.Size = new Size(187, 22);
+            refreshToolStripMenuItem.Text = "Refresh";
+            refreshToolStripMenuItem.Click += refreshToolStripMenuItem_Click;
+            // 
             // lV_programsInExtendedStartup
             // 
             lV_programsInExtendedStartup.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
@@ -117,9 +126,9 @@
             // 
             // cMS_lVExtendedStartup
             // 
-            cMS_lVExtendedStartup.Items.AddRange(new ToolStripItem[] { addNewProgramToolStripMenuItem, removeToolStripMenuItem, activateDeactivateToolStripMenuItem });
+            cMS_lVExtendedStartup.Items.AddRange(new ToolStripItem[] { addNewProgramToolStripMenuItem, removeToolStripMenuItem, activateDeactivateToolStripMenuItem, refreshToolStripMenuItem1 });
             cMS_lVExtendedStartup.Name = "cMS_lVExtendedStartup";
-            cMS_lVExtendedStartup.Size = new Size(178, 70);
+            cMS_lVExtendedStartup.Size = new Size(178, 92);
             // 
             // addNewProgramToolStripMenuItem
             // 
@@ -141,6 +150,13 @@
             activateDeactivateToolStripMenuItem.Size = new Size(177, 22);
             activateDeactivateToolStripMenuItem.Text = "Activate/Deactivate";
             activateDeactivateToolStripMenuItem.Click += activateDeactivateToolStripMenuItem_Click;
+            // 
+            // refreshToolStripMenuItem1
+            // 
+            refreshToolStripMenuItem1.Name = "refreshToolStripMenuItem1";
+            refreshToolStripMenuItem1.Size = new Size(177, 22);
+            refreshToolStripMenuItem1.Text = "Refresh";
+            refreshToolStripMenuItem1.Click += refreshToolStripMenuItem1_Click;
             // 
             // contextMenuStrip1
             // 
@@ -217,5 +233,7 @@
         private Button btn_transfer;
         private ToolTip toolTip1;
         private NotifyIcon notifyIcon;
+        private ToolStripMenuItem refreshToolStripMenuItem;
+        private ToolStripMenuItem refreshToolStripMenuItem1;
     }
 }
