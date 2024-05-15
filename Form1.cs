@@ -18,7 +18,7 @@ namespace ExtendedAutoStart
         {
             DatabaseManager.Instance.InitializeDatabaseIfNeeded();
 
-            using(MainDbContext context = new MainDbContext())
+            using (MainDbContext context = new MainDbContext())
             {
                 var programsInExtendedStartup = context.ProgramsInExtendedStartup.ToList();
 
@@ -40,13 +40,6 @@ namespace ExtendedAutoStart
                 item.SubItems.Add(program.StartUpType.ToString());
                 lV_programsInNormalStartup.Items.Add(item);
             }
-
-            // Resize columns to fit content
-            lV_programsInNormalStartup.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
-
-            // Set specific width if needed
-            lV_programsInNormalStartup.Columns[0].Width = 200; // Set the width of the Name column
-            lV_programsInNormalStartup.Columns[1].Width = 100; // Set the width of the StartupType column
         }
 
         private void InitializeListViews()
@@ -58,6 +51,15 @@ namespace ExtendedAutoStart
             lV_programsInExtendedStartup.View = View.Details;
             lV_programsInExtendedStartup.Columns.Add("Name", -2, HorizontalAlignment.Left);
             lV_programsInExtendedStartup.Columns.Add("Activated", -2, HorizontalAlignment.Left);
+
+
+            lV_programsInNormalStartup.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
+            lV_programsInNormalStartup.Columns[0].Width = 150;
+            lV_programsInNormalStartup.Columns[1].Width = 100;
+
+            lV_programsInExtendedStartup.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
+            lV_programsInExtendedStartup.Columns[0].Width = 150;
+            lV_programsInExtendedStartup.Columns[1].Width = 100;
         }
 
         private List<ComputerProgram> GetAllProgramsInStartUp()
@@ -209,7 +211,7 @@ namespace ExtendedAutoStart
                         File.Delete(startupFilePathWithLnk);
                     }
 
-                    if(File.Exists(program.Path))
+                    if (File.Exists(program.Path))
                     {
                         File.Delete(program.Path);
                     }
@@ -228,7 +230,7 @@ namespace ExtendedAutoStart
 
         private void openLocationToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if(lV_programsInNormalStartup.SelectedItems.Count == 0)
+            if (lV_programsInNormalStartup.SelectedItems.Count == 0)
             {
                 MessageBox.Show("No program selected");
                 return;
@@ -247,6 +249,148 @@ namespace ExtendedAutoStart
             }
 
             Process.Start("explorer.exe", $"/select, {ComputerProgram.Path}");
+        }
+
+        private void removeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (lV_programsInExtendedStartup.SelectedItems.Count == 0)
+                {
+                    MessageBox.Show("No program selected");
+                    return;
+                }
+
+                var selectedProgram = lV_programsInExtendedStartup.SelectedItems[0];
+
+                string programName = selectedProgram.SubItems[0].Text;
+
+                if (MessageBox.Show($"Are you sure you want to remove {programName} from extended startup?", "Remove from extended startup", MessageBoxButtons.YesNo) == DialogResult.No)
+                {
+                    return;
+                }
+
+                using (MainDbContext context = new MainDbContext())
+                {
+                    var program = context.ProgramsInExtendedStartup.FirstOrDefault(p => p.Name == programName);
+
+                    if (program == null)
+                    {
+                        MessageBox.Show("Program not found");
+                        return;
+                    }
+
+                    context.ProgramsInExtendedStartup.Remove(program);
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void activateDeactivateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (lV_programsInExtendedStartup.SelectedItems.Count == 0)
+                {
+                    MessageBox.Show("No program selected");
+                    return;
+                }
+
+                var selectedProgram = lV_programsInExtendedStartup.SelectedItems[0];
+
+                string programName = selectedProgram.SubItems[0].Text;
+
+                using (MainDbContext context = new MainDbContext())
+                {
+                    var program = context.ProgramsInExtendedStartup.FirstOrDefault(p => p.Name == programName);
+
+                    if (program == null)
+                    {
+                        MessageBox.Show("Program not found");
+                        return;
+                    }
+
+                    program.Activated = !program.Activated;
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                lV_programsInExtendedStartup.Items.Clear();
+
+                using (MainDbContext context = new MainDbContext())
+                {
+                    var programsInExtendedStartup = context.ProgramsInExtendedStartup.ToList();
+
+                    foreach (var program in programsInExtendedStartup)
+                    {
+                        ListViewItem item = new ListViewItem(program.Name);
+                        item.SubItems.Add(program.Activated.ToString());
+                        lV_programsInExtendedStartup.Items.Add(item);
+                    }
+                }
+            }
+        }
+
+        private void addNewProgramToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string programName = string.Empty;
+                using (OpenFileDialog openFileDialog = new OpenFileDialog())
+                {
+                    openFileDialog.Filter = "Executable Files|*.exe|All Files|*.*";
+                    openFileDialog.Title = "Wähle ein Programm aus";
+
+                    if (openFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        string selectedFile = openFileDialog.FileName;
+
+                        programName = Path.GetFileNameWithoutExtension(selectedFile);
+
+                        AddProgramToDatabase(selectedFile);
+                    }
+                }
+
+                MessageBox.Show("Program added to extended startup");
+
+                ListViewItem item = new ListViewItem(programName);
+                item.SubItems.Add("True");
+                lV_programsInExtendedStartup.Items.Add(item);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void AddProgramToDatabase(string filePath)
+        {
+            try
+            {
+                using (var context = new MainDbContext())
+                {
+                    var program = new ExtendedStartupProgram
+                    {
+                        Name = Path.GetFileNameWithoutExtension(filePath)
+                    };
+
+                    context.ProgramsInExtendedStartup.Add(program);
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while adding program to database", ex);
+            }
         }
     }
 }
