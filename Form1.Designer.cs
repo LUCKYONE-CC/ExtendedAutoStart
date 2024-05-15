@@ -181,13 +181,14 @@
             // 
             // btn_transfer
             // 
-            btn_transfer.Location = new Point(359, 12);
+            btn_transfer.Location = new Point(353, 12);
             btn_transfer.Name = "btn_transfer";
             btn_transfer.Size = new Size(97, 23);
             btn_transfer.TabIndex = 8;
             btn_transfer.Text = "Transfer";
             toolTip1.SetToolTip(btn_transfer, "Transfer all programs from normal startup to extended startup");
             btn_transfer.UseVisualStyleBackColor = true;
+            btn_transfer.Click += btn_transfer_Click;
             // 
             // Form1
             // 
